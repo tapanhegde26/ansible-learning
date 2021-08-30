@@ -165,7 +165,7 @@
     #Install php Configuration
     - name: Install PhP Packages
       dnf: name={{ item }} update_cache=yes state=latest
-      loop: [ 'php', 'php-fpm', 'php-mysqlnd','php-opcache','php-gd','php-xml','php-mbstring','php-imap' ]
+      loop: [ 'php', 'php-fpm', 'php-mysqlnd','php-opcache','php-gd','php-xml','php-mbstring' ]
 
     - name: Make sure a php-fm service unit is running
       ansible.builtin.systemd:
