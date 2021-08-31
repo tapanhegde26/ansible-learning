@@ -12,16 +12,27 @@
 
     - name: Create document root
       file:
-         path: "/var/www/{{ http_folder }}"
+         path: "/var/www/{{http_folder }}"
          state: directory
          owner: "{{ app_user }}"
          mode: '0755'
 
-    # - name: Set up Apache virtualhost
-    #   template:
-    #     src: "files/httpd.conf.j2"
-    #     dest: "/etc/httpd/conf/{{ http_conf }}"
-    #   notify: Reload Apache
+    - name: Make sure a service unit is running
+      ansible.builtin.systemd:
+         state: started
+         name: httpd
+
+    - name: Enable service httpd and ensure it is not masked
+      ansible.builtin.systemd:
+         name: httpd
+         enabled: yes
+         masked: no
+
+    - name: Creating a file with content
+      copy:
+        dest: "/var/www/html/index.html"
+        content: |
+            "Welcome to this site!"
 
     - name: install firewalld
       dnf:
@@ -45,42 +56,12 @@
         name: firewalld
         state: restarted
 
-    - name: Make sure a service unit is running
-      ansible.builtin.systemd:
-         state: started
-         name: httpd
-
-    - name: Enable service httpd and ensure it is not masked
-      ansible.builtin.systemd:
-         name: httpd
-         enabled: yes
-         masked: no
-
-    - name: Creating a file with content
-      copy:
-        dest: "/var/www/html/index.html"
-        content: |
-            "Welcome to this site!"
-
-
-    - name: create directory for virtual hosts
-      template:
-        src: "files/httpd.conf.j2"
-        dest: "/etc/httpd/conf/{{ http_conf }}"
-      notify: Reload Apache
-
-    - name: Set up Apache virtualhost
-      file:
-        path: /var/www/{{http_host}}
-        state: directory
-
-    #
-    # - name: Change file ownership, group and permissions
-    #   ansible.builtin.file:
-    #     path: /var/www/html
-    #     owner: apache
-    #     group: apache
-    #     mode: '0644'
+    - name: Change file ownership, group and permissions
+      ansible.builtin.file:
+        path: /var/www/html
+        owner: apache
+        group: apache
+        mode: '0644'
 
     - name: Make sure a mariadb service unit is running
       ansible.builtin.systemd:
@@ -202,42 +183,12 @@
         name: httpd.service
         state: reloaded
 
-    # PHP Info Page
+
+   # PHP Info Page
     - name: Sets Up PHP Info Page
       template:
         src: "files/info.php.j2"
         dest: "/var/www/{{ http_host }}/info.php"
-
-    - name: Creating a file with content
-      copy:
-        dest: "/var/www/html/info.php"
-        content: |
-            "<?php
-              phpinfo();?>"
-
-    - name: Transfer the script
-      copy: src=install_module.sh dest=/home/ec2-user mode=0777
-
-    - name: Execute the script
-      command: sh /home/ec2-user/install_module.sh
-
-
-    - name: Create user
-      community.mysql.mysql_user:
-        name: 'wiki'
-        password: '{{ wiki_user_password }}'
-        login_host: 'localhost'
-        login_user: 'root'
-        login_password: '{{ mysql_root_password }}'
-        state: present
-
-    - name: Create a new database
-      mysql_db:
-        name: 'wikidatabase'
-        state: present
-        login_host: 'localhost'
-        login_user: 'root'
-        login_password: "{{ mysql_root_password }}"
 
   handlers:
     - name: Reload Apache

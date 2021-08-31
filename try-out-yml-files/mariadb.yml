@@ -1,0 +1,26 @@
+---
+- name: MariaDB
+  hosts: all
+  gather_facts: true
+  become: true
+  vars:
+    mysql_root_password: "Password1"
+  tasks:
+  - name: Add repository
+    yum_repository:
+      name: MariaDB
+      description: mariadb YUM repo
+      baseurl: https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+  - name: Download mariadb_repo_setup
+    get_url:
+      url: https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+      dest: /home/ec2-user
+      mode: '777'
+  - name: Run mariadb repo script
+    become: yes
+    become_user: root
+    shell: "./mariadb_repo_setup"
+  - name: Install the latest version of mariadb
+    dnf:
+      name: mariadb-server
+      state: latest

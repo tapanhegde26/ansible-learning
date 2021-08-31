@@ -7,7 +7,7 @@
    - yum:
        name=wget
        state=latest
-   - yum:
+   - yum: 
        name=httpd
        state=latest
    - yum:
@@ -15,7 +15,7 @@
        state=present
    - name: ensure httpd is running
      service:
-      name: httpd
+      name: httpd 
       state: started
    - name: Open port 80 for http access
      firewalld:
